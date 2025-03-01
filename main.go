@@ -841,9 +841,8 @@ type LogEvent struct {
 
 type SlogHandler struct {
 	slog.Handler
-	l        *log.Logger
-	attrs    []slog.Attr
-	jsonLogs bool
+	attrs   []slog.Attr
+	printer LogPrinter
 }
 
 func NewSlogHandler(
@@ -852,11 +851,17 @@ func NewSlogHandler(
 	jsonLogs bool,
 ) *SlogHandler {
 
+	logger := log.New(out, "", 0)
+
+	var printer LogPrinter = &LogPrinterText{l: logger}
+	if jsonLogs {
+		printer = &LogPrinterJson{l: logger}
+	}
+
 	return &SlogHandler{
-		Handler:  slog.NewTextHandler(out, opts),
-		l:        log.New(out, "", 0),
-		attrs:    make([]slog.Attr, 0),
-		jsonLogs: jsonLogs,
+		Handler: slog.NewTextHandler(out, opts),
+		attrs:   make([]slog.Attr, 0),
+		printer: printer,
 	}
 }
 
@@ -869,11 +874,7 @@ func (h *SlogHandler) Handle(ctx context.Context, r slog.Record) error {
 	for _, v := range h.attrs {
 		r.AddAttrs(v)
 	}
-	if h.jsonLogs {
-		return h.printJson(r)
-	}
-	h.printText(r)
-	return nil
+	return h.printer.Print(r)
 }
 
 func (h *SlogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
@@ -881,12 +882,20 @@ func (h *SlogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	slogAttrs = append(slogAttrs, attrs...)
 	return &SlogHandler{
 		Handler: h.Handler,
-		l:       h.l,
 		attrs:   slogAttrs,
+		printer: h.printer,
 	}
 }
 
-func (h *SlogHandler) printText(r slog.Record) {
+type LogPrinter interface {
+	Print(r slog.Record) error
+}
+
+type LogPrinterText struct {
+	l *log.Logger
+}
+
+func (p *LogPrinterText) Print(r slog.Record) error {
 	attrs := []byte(" ")
 	r.Attrs(func(a slog.Attr) bool {
 		attrs = append(attrs, []byte(fmt.Sprintf(`%s="%v" `, a.Key, a.Value.String()))...)
@@ -906,10 +915,15 @@ func (h *SlogHandler) printText(r slog.Record) {
 		level = r.Level.String() + " "
 	}
 	level += " "
-	h.l.Println(timeStr, level, r.Message, string(attrs))
+	p.l.Println(timeStr, level, r.Message, string(attrs))
+	return nil
 }
 
-func (h *SlogHandler) printJson(r slog.Record) error {
+type LogPrinterJson struct {
+	l *log.Logger
+}
+
+func (p *LogPrinterJson) Print(r slog.Record) error {
 	attrs := make(map[string]string, r.NumAttrs())
 	r.Attrs(func(a slog.Attr) bool {
 		attrs[a.Key] = a.Value.String()
@@ -925,6 +939,6 @@ func (h *SlogHandler) printJson(r slog.Record) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal log event: %w", err)
 	}
-	h.l.Println(string(buf))
+	p.l.Println(string(buf))
 	return nil
 }
