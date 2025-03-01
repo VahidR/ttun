@@ -1,5 +1,5 @@
 module mock-custom
 
-go 1.23.1
+go 1.24
 
-require github.com/alecthomas/kong v1.2.1
+require github.com/alecthomas/kong v1.8.1

@@ -11,5 +11,4 @@ else
     exit 1
 fi
 
-CGO_ENABLED=0 GOOS="linux" GOARCH=${goarch} \
-    go build -o target/ttun
+CGO_ENABLED=0 GOOS="linux" GOARCH=${goarch} go build -o target/ttun
