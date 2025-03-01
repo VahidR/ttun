@@ -1,4 +1,5 @@
 test_data_folder = test-data
+port = 15800
 
 format:
 	@go fmt main.go && \
@@ -9,23 +10,20 @@ lint: format
 	@golangci-lint run main.go && \
 		golangci-lint run mock/custom/main.go
 
-build:
-	@./build.sh
-
-build_docker: build
+build_docker:
 	docker build -t ttun -f Dockerfile .
 
+build_docker_race:
+	docker build -t ttun -f Dockerfile . --build-arg race=1
+
 test:
-	go test . -timeout 1m -v -count 1
+	go test . -timeout 1m -v -count 1 -race
 
 run_docker_client:
-	docker run --rm -it \
-  	ttun client
+	docker run --rm -it ttun client
 
 run_docker_server:
-	docker run --rm -it \
-		--name ttun-server \
-  	ttun --json-logs server
+	docker run --rm -it --name ttun-server -p 14600:14600 ttun --json-logs server
 
 run_caddy:
 	docker run -it --rm --name ttun-caddy -p 15800:15800 caddy:2.8.4-alpine \
@@ -35,8 +33,8 @@ run_caddy:
 
 curl_download_bytes:
 	mkdir -p $(test_data_folder)
-	curl -LX GET 'http://localhost:15800/data/bytes.txt' -o $(test_data_folder)/mock.bytes.txt
+	curl -LX GET 'http://localhost:$(port)/data/bytes.txt' -o $(test_data_folder)/mock.bytes.txt
 
 curl_download_image:
 	mkdir -p $(test_data_folder)
-	curl -LX GET 'http://localhost:15800/data/image.jpg' -o $(test_data_folder)/image.jpg
+	curl -LX GET 'http://localhost:$(port)/data/image.jpg' -o $(test_data_folder)/image.jpg

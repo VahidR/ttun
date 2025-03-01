@@ -45,4 +45,4 @@ make curl_download_image
 
 To make this demo working automatically you should stop all containers before starting it.
 
-Why we need Caddy? - as ttun doesn't support HTTPS and we want to use Caddy for it.
+Why we need Caddy? - as ttun doesn't support HTTPS and we can use Caddy for it.
