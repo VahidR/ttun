@@ -21,8 +21,18 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// NetworkBufSize is the size of the buffer used for network operations.
 const NetworkBufSize = 256
 
+// main is the entry point of the application.
+// The kong library is used for command-line parsing.
+// The slog library is used for structured logging.
+// The application supports two main commands: Client and Server.
+// The logging format can be configured to be either JSON or plain text based on the command-line flag.
+// The context package is used to manage cancellation and timeouts for long-running operations.
+// The errgroup package is used to manage groups of goroutines and handle errors from them.
+// The application is designed to facilitate proxy connections between clients and servers.
+// The application is intended to be run in a Unix-like environment due to its use of syscall package.
 func main() {
 	cmd := &Cmd{}
 	kctx := kong.Parse(cmd)
@@ -43,6 +53,11 @@ func main() {
 	}
 }
 
+// Cmd is the root command.
+// It holds global flags and subcommands.
+// Each subcommand is represented as a field.
+// The `cmd` struct tag is used to specify the command name and help text.
+// Kong uses reflection to parse the struct and generate the CLI.
 type Cmd struct {
 	JsonLogs bool `default:"false" help:"Print logs in json."`
 
@@ -839,12 +854,18 @@ type LogEvent struct {
 	Data    map[string]string `json:"data"`
 }
 
+// SlogHandler is a custom slog handler that supports both JSON and text log formats.
 type SlogHandler struct {
-	slog.Handler
-	attrs   []slog.Attr
-	printer LogPrinter
+	slog.Handler             // Embeds slog.Handler to implement the slog.Handler interface.
+	attrs        []slog.Attr // Slice of slog.Attr to hold additional attributes for log records.
+	printer      LogPrinter  // LogPrinter interface to handle log printing in different formats.
 }
 
+// NewSlogHandler creates a new SlogHandler.
+// It takes an io.Writer for output, slog.HandlerOptions for configuration,
+// and a boolean flag to determine if logs should be in JSON format.
+// Depending on the jsonLogs flag, it initializes either a LogPrinterJson or LogPrinterText.
+// The SlogHandler embeds slog.Handler and maintains a slice of slog.Attr for additional attributes.
 func NewSlogHandler(
 	out io.Writer,
 	opts *slog.HandlerOptions,
@@ -891,6 +912,7 @@ type LogPrinter interface {
 	Print(r slog.Record) error
 }
 
+// LogPrinterText is a log printer that outputs logs in plain text format.
 type LogPrinterText struct {
 	l *log.Logger
 }
@@ -919,6 +941,7 @@ func (p *LogPrinterText) Print(r slog.Record) error {
 	return nil
 }
 
+// LogPrinterJson is a log printer that outputs logs in JSON format.
 type LogPrinterJson struct {
 	l *log.Logger
 }
