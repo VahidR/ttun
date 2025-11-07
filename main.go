@@ -25,6 +25,7 @@ import (
 const NetworkBufSize = 256
 
 // main is the entry point of the application.
+//
 // The kong library is used for command-line parsing.
 // The slog library is used for structured logging.
 // The application supports two main commands: Client and Server.
@@ -54,6 +55,7 @@ func main() {
 }
 
 // Cmd is the root command.
+//
 // It holds global flags and subcommands.
 // Each subcommand is represented as a field.
 // The `cmd` struct tag is used to specify the command name and help text.
@@ -862,6 +864,7 @@ type SlogHandler struct {
 }
 
 // NewSlogHandler creates a new SlogHandler.
+//
 // It takes an io.Writer for output, slog.HandlerOptions for configuration,
 // and a boolean flag to determine if logs should be in JSON format.
 // Depending on the jsonLogs flag, it initializes either a LogPrinterJson or LogPrinterText.
