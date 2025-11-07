@@ -1,11 +1,11 @@
 module ttun
 
-go 1.24
+go 1.24.0
 
 require (
-	github.com/alecthomas/kong v1.8.1
+	github.com/alecthomas/kong v1.12.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.17.0
 )
 
 require (
