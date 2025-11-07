@@ -4,3 +4,7 @@
 target
 
 test-data
+
+*.iml
+.DS_Store
+ttun
